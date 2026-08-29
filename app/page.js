@@ -1,12 +1,15 @@
-export default function Home() {
-  return (
-    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
-      <h1>✅ App is working!</h1>
-      <p>If you see this, the deployment is successful.</p>
-      <p>
-        <a href="/login" style={{ color: "blue" }}>Login</a> or{" "}
-        <a href="/signup" style={{ color: "blue" }}>Sign up</a>
-      </p>
-    </div>
-  );
-}
+avascript
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function Home() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/dashboard");
+  } else {
+    redirect("/login");
+  }
