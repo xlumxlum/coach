@@ -30,12 +30,27 @@ export async function middleware(request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const protectedPaths = ["/dashboard", "/interview", "/report"];
-  const isProtected = protectedPaths.some((p) => request.nextUrl.pathname.startsWith(p));
+  const path = request.nextUrl.pathname;
 
+  // Public routes (no login required)
+  const publicPaths = ["/", "/login", "/signup"];
+  
+  // Protected routes (login required)
+  const protectedPaths = ["/dashboard", "/interview", "/report"];
+
+  // If trying to access protected path without user → redirect to login
+  const isProtected = protectedPaths.some((p) => path.startsWith(p));
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // If user is logged in and tries to visit login/signup → redirect to dashboard
+  const isPublic = publicPaths.includes(path);
+  if (isPublic && user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
@@ -43,5 +58,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/interview/:path*", "/report/:path*"],
+  matcher: ["/", "/login", "/signup", "/dashboard/:path*", "/interview/:path*", "/report/:path*"],
 };
